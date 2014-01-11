@@ -16,11 +16,77 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
+import static net.minecraftforge.gradle.dev.FmlDevPlugin.*
 
-repositories {
-    mavenCentral()
+apply plugin: 'maven'
+apply plugin: 'fmldev'
+
+minecraft {
+    version = '1.7.2'
+    mcpVersion = '9.01-pre'
+    fmlDir = projectDir.getAbsolutePath();
+    // mainClass = 'cpw.mods.fml.relauncher.ServerLaunchWrapper'
+    // tweakClass = 'cpw.mods.fml.common.launcher.FMLTweaker'
+    installerVersion = "1.4"
 }
 
-dependencies {
+uploadArchives {
+    repositories {
+        if (project.hasProperty("filesmaven")) {
+            logger.info('Publishing to files server')
+            
+            mavenDeployer {
+                configuration = configurations.deployJars
+
+                repository(url: project.filesmaven.url) {
+                    authentication(userName: project.filesmaven.username, privateKey: project.filesmaven.key)
+                }
+
+                pom {
+                    groupId = project.group
+                    version = project.version
+                    artifactId = project.archivesBaseName
+                    project {
+                        name project.archivesBaseName
+                        packaging 'jar'
+                        description 'BlazeLoader'
+                        url 'https://github.com/warriordog/BlazeLoader'
+
+                        scm {
+                            url 'https://github.com/warriordog/BlazeLoader'
+                            connection 'scm:git:git://github.com/warriordog/BlazeLoader.git'
+                            developerConnection 'scm:git:git@github.com:warriordog/BlazeLoader.git'
+                        }
+
+                        issueManagement {
+                            system 'github'
+                            url 'https://github.com/warriordog/BlazeLoader/issues'
+                        }
+
+                        licenses {
+                            license {
+                                name 'Blaze Loader License'
+                                url 'https://raw.github.com/warriordog/BlazeLoader/master/LICENCE.md'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'warriordog'
+                                name 'warriordog'
+                                roles { role 'developer' }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            logger.info('Publishing to repo folder')
+            
+            mavenDeployer {
+                repository(url: 'file://localhost/' + project.file('repo').getAbsolutePath())
+            }
+        }
+    }
 }
